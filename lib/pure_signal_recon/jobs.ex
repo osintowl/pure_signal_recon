@@ -82,6 +82,30 @@ defmodule PureSignalRecon.Jobs do
   end
 
   @doc """
+  Checks if a job is complete without downloading the full result.
+
+  Uses a HEAD request to check job status efficiently.
+
+  ## Returns
+
+    * `:ok` - Job is complete (status 200)
+    * `{:processing, 206}` - Job is still processing (status 206)
+    * `{:error, reason}` - Error occurred
+
+  ## Examples
+
+      iex> PureSignalRecon.Jobs.check_status(client, 123)
+      :ok
+
+      iex> PureSignalRecon.Jobs.check_status(client, 456)
+      {:processing, 206}
+  """
+  @spec check_status(Client.t(), integer()) :: :ok | {:processing, 206} | {:error, term()}
+  def check_status(%Client{} = client, job_id) do
+    Client.head(client, "/jobs/#{job_id}")
+  end
+
+  @doc """
   Gets all results from a specific job.
 
   Returns a file with all query results combined.

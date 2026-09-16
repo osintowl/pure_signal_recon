@@ -41,7 +41,7 @@ defmodule PureSignalRecon.TaggedIPs do
       {"type", file_type}
     ]
 
-    Client.post(client, "/tagged_ips/bulk/create", multipart_data, multipart: true)
+    Client.post(client, "/tagged-ips/bulk-create", multipart_data, multipart: true)
   end
 
   @doc """
@@ -71,7 +71,7 @@ defmodule PureSignalRecon.TaggedIPs do
       {"type", file_type}
     ]
 
-    Client.post(client, "/tagged_ips/bulk/update", multipart_data, multipart: true)
+    Client.post(client, "/tagged-ips/bulk-update", multipart_data, multipart: true)
   end
 
   @doc """
@@ -99,6 +99,6 @@ defmodule PureSignalRecon.TaggedIPs do
       {"type", file_type}
     ]
 
-    Client.post(client, "/tagged_ips/bulk/delete", multipart_data, multipart: true)
+    Client.post(client, "/tagged-ips/bulk-delete", multipart_data, multipart: true)
   end
 end

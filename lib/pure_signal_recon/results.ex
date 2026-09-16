@@ -37,6 +37,30 @@ defmodule PureSignalRecon.Results do
   end
 
   @doc """
+  Checks if a result is ready without downloading the full data.
+
+  Uses a HEAD request to check result status efficiently.
+
+  ## Returns
+
+    * `:ok` - Result is ready (status 200)
+    * `{:processing, 206}` - Result is still processing (status 206)
+    * `{:error, reason}` - Error occurred
+
+  ## Examples
+
+      iex> PureSignalRecon.Results.check_status(client, 456)
+      :ok
+
+      iex> PureSignalRecon.Results.check_status(client, 789)
+      {:processing, 206}
+  """
+  @spec check_status(Client.t(), integer()) :: :ok | {:processing, 206} | {:error, term()}
+  def check_status(%Client{} = client, result_id) do
+    Client.head(client, "/results/#{result_id}")
+  end
+
+  @doc """
   Deletes the result from a single query.
 
   ## Examples

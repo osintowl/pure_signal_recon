@@ -138,4 +138,42 @@ defmodule PureSignalRecon.Client do
         {:error, reason}
     end
   end
+
+  @doc """
+  Performs a HEAD request.
+
+  Useful for checking if a job or result is ready without downloading the full response.
+  Returns :ok for 200 status, {:processing, 206} for incomplete jobs, or an error.
+  """
+  @spec head(t(), String.t(), keyword()) :: :ok | {:processing, 206} | {:error, term()}
+  def head(%__MODULE__{req: req}, path, opts \\ []) do
+    case Req.head(req, url: path, params: Keyword.get(opts, :params, [])) do
+      {:ok, %{status: 200}} ->
+        :ok
+
+      {:ok, %{status: 206}} ->
+        {:processing, 206}
+
+      {:ok, %{status: 401}} ->
+        {:error, :authentication_error}
+
+      {:ok, %{status: 403}} ->
+        {:error, :authorization_error}
+
+      {:ok, %{status: 404}} ->
+        {:error, :not_found}
+
+      {:ok, %{status: 429}} ->
+        {:error, :rate_limit_exceeded}
+
+      {:ok, %{status: 500}} ->
+        {:error, :internal_server_error}
+
+      {:ok, %{status: status}} ->
+        {:error, {:unexpected_status, status}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
 end
