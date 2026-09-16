@@ -240,7 +240,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This library is released under the MIT License.
+This library is released under the BSD 3-Clause License.
 
 ## Links
 
