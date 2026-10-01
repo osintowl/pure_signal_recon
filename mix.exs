@@ -4,7 +4,7 @@ defmodule PureSignalRecon.MixProject do
   def project do
     [
       app: :pure_signal_recon,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -27,7 +27,7 @@ defmodule PureSignalRecon.MixProject do
 
   defp deps do
     [
-      {:req, "~> 0.5"},
+      {:req, "~> 0.5 or ~> 0.6 or ~> 0.7"},
       {:ex_doc, "~> 0.31", only: :dev, runtime: false}
     ]
   end
