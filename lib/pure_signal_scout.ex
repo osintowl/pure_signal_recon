@@ -11,7 +11,7 @@ defmodule PureSignalScout do
 
       config :pure_signal_recon,
         scout_api_key: "your_api_key_here",
-        scout_base_url: "https://scout.cymru.com/api"
+        scout_base_url: "https://command.cymru.com/api"
 
   Or pass them directly when creating a client:
 
@@ -50,7 +50,7 @@ defmodule PureSignalScout do
   @type api_key :: String.t()
   @type base_url :: String.t()
 
-  @default_base_url "https://scout.cymru.com/api"
+  @default_base_url "https://command.cymru.com/api"
 
   @doc """
   Creates a new Scout client with the given options.
@@ -58,7 +58,7 @@ defmodule PureSignalScout do
   ## Options
 
     * `:api_key` - Your Pure Signal Scout API key (required)
-    * `:base_url` - The base URL for the API (default: "https://scout.cymru.com/api")
+    * `:base_url` - The base URL for the API (default: "https://command.cymru.com/api")
 
   ## Examples
 
