@@ -1,8 +1,8 @@
 defmodule PureSignalScout.Client do
   @moduledoc """
-  HTTP client for the Pure Signal Scout API.
+  HTTP client for the Pure Signal Scout/Command API.
 
-  Scout uses Bearer token authentication and JSON request/response format.
+  Uses Token authentication (not Bearer) and JSON request/response format.
   All investigation endpoints use POST with JSON bodies.
   """
 
@@ -26,7 +26,7 @@ defmodule PureSignalScout.Client do
       Req.new(
         base_url: base_url,
         headers: [
-          {"authorization", "Bearer #{api_key}"},
+          {"authorization", "Token #{api_key}"},
           {"content-type", "application/json"},
           {"accept", "application/json"}
         ],
