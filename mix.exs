@@ -4,7 +4,7 @@ defmodule PureSignalRecon.MixProject do
   def project do
     [
       app: :pure_signal_recon,
-      version: "0.2.0",
+      version: "0.2.1",
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -27,7 +27,12 @@ defmodule PureSignalRecon.MixProject do
             PureSignalRecon.TaggedIPs,
             PureSignalRecon.Tags,
             PureSignalRecon.Stats,
-            PureSignalRecon.Estimate
+            PureSignalRecon.Estimate,
+            PureSignalRecon.Pdns,
+            PureSignalRecon.Certs,
+            PureSignalRecon.OpenDir,
+            PureSignalRecon.Host,
+            PureSignalRecon.Search
           ],
           Scout: [
             PureSignalScout,
