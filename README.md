@@ -1,8 +1,20 @@
-# PureSignalRecon
+# PureSignal
 
-Elixir client for the [Team Cymru Pure Signal Recon API](https://www.team-cymru.com/post/introducing-pure-signal-recon). This library provides a simple interface to interact with the Pure Signal Recon API, allowing you to query network flow data, malware reports, manage jobs and schedules, and more.
+Elixir client for the [Team Cymru Pure Signal](https://www.team-cymru.com/) platform. This library provides interfaces for both **Recon** (network flow analysis) and **Scout** (IP enrichment/threat intelligence) APIs.
 
 ## Features
+
+### Scout (IP Enrichment & Threat Intelligence)
+
+- **IP Summary** - Risk scores, infrastructure tags, ASN, geolocation
+- **Communication Peers** - Netflow data showing who IPs talk to
+- **Passive DNS** - Historical DNS resolution data
+- **Risk Scoring** - Bulk risk assessment for IPs
+- **Tag Pivoting** - Filter IPs by threat tags (malware, C2, Tor, etc.)
+- **Infrastructure Hunting** - Find IPs by banner patterns or certificate CNs
+- **Perimeter Sweeps** - Detect outbound traffic to malicious infrastructure
+
+### Recon (Network Flow Analysis)
 
 - **Jobs Management** - Create, list, retrieve, and delete query jobs
 - **Scheduled Jobs** - Automate recurring queries with flexible intervals
@@ -21,36 +33,79 @@ Add `pure_signal_recon` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:pure_signal_recon, "~> 0.1.0"},
-    {:req, "~> 0.5"}
+    {:pure_signal_recon, "~> 0.2.0"}
   ]
 end
 ```
 
 ## Configuration
 
-You can configure the API key and base URL in your application config:
+You can configure the API keys and base URLs in your application config:
 
 ```elixir
+# Scout API (IP enrichment, threat intel)
 config :pure_signal_recon,
-  api_key: System.get_env("PURE_SIGNAL_API_KEY"),
+  scout_api_key: System.get_env("PURE_SIGNAL_SCOUT_API_KEY"),
+  scout_base_url: "https://scout.cymru.com/api"
+
+# Recon API (network flows, jobs)
+config :pure_signal_recon,
+  api_key: System.get_env("PURE_SIGNAL_RECON_API_KEY"),
   base_url: "https://recon.cymru.com/api"
 ```
 
-Or pass them directly when creating a client:
+Or pass them directly when creating clients:
 
 ```elixir
-client = PureSignalRecon.new(api_key: "your_api_key_here")
+scout = PureSignalScout.new(api_key: "your_scout_key")
+recon = PureSignalRecon.new(api_key: "your_recon_key")
 ```
 
-## Quick Start
+## Quick Start - Scout
 
 ```elixir
-# Create a client
-client = PureSignalRecon.new(api_key: "your_api_key")
+# Create a Scout client
+scout = PureSignalScout.new(api_key: "your_api_key")
+
+# Get IP summary with risk scores and tags
+{:ok, summary} = PureSignalScout.Summary.get(scout, "8.8.8.8")
+
+# Get communication peers (netflow)
+{:ok, comms} = PureSignalScout.Comms.get(scout, "192.168.1.1",
+  start_time: "2024-01-01T00:00:00Z",
+  end_time: "2024-01-02T00:00:00Z"
+)
+
+# Get passive DNS records
+{:ok, pdns} = PureSignalScout.Pdns.get(scout, "8.8.8.8")
+
+# Bulk risk scores
+{:ok, risks} = PureSignalScout.Risk.get(scout, ["8.8.8.8", "1.1.1.1"])
+
+# Filter IPs by tags
+{:ok, results} = PureSignalScout.Tags.pivot(scout, ips, ["malware", "controller"])
+
+# Hunt by banner pattern
+{:ok, results} = PureSignalScout.Hunt.banner(scout, "nginx")
+
+# Hunt by certificate CN
+{:ok, results} = PureSignalScout.Hunt.cert(scout, "*.google.com")
+
+# Perimeter sweep for malicious outbound traffic
+{:ok, results} = PureSignalScout.Advanced.perimeter_sweep(scout, ["10.0.0.0/8"],
+  start_time: "2024-01-01T00:00:00Z",
+  end_time: "2024-01-02T00:00:00Z"
+)
+```
+
+## Quick Start - Recon
+
+```elixir
+# Create a Recon client
+recon = PureSignalRecon.new(api_key: "your_api_key")
 
 # Create a job to query network flows
-{:ok, job} = PureSignalRecon.Jobs.create(client, %{
+{:ok, job} = PureSignalRecon.Jobs.create(recon, %{
   job_name: "DNS Traffic Analysis",
   job_description: "Analyzing DNS queries to 8.8.8.8",
   start_date: "2024-01-01T00:00:00Z",
@@ -62,118 +117,58 @@ client = PureSignalRecon.new(api_key: "your_api_key")
 })
 
 # Get job details
-{:ok, details} = PureSignalRecon.Jobs.get_details(client, job["id"])
+{:ok, details} = PureSignalRecon.Jobs.get_details(recon, job["id"])
 
 # List all jobs
-{:ok, jobs} = PureSignalRecon.Jobs.list(client)
+{:ok, jobs} = PureSignalRecon.Jobs.list(recon)
 
 # Get job results in CSV format
-{:ok, results} = PureSignalRecon.Jobs.get_results(client, job["id"], format: "csv")
+{:ok, results} = PureSignalRecon.Jobs.get_results(recon, job["id"], format: "csv")
 ```
 
-## Usage Examples
+## Scout Tag Reference
 
-### Malware Intelligence
+### Adversary Indicators
 
-```elixir
-# Search for malware by IP address
-{:ok, results} = PureSignalRecon.Malware.search(client, %{
-  search_type: "ip",
-  search_term: "192.168.1.1",
-  page: 1,
-  page_length: 50
-})
+| Tag | Description |
+|-----|-------------|
+| `risknet` | Known risky network |
+| `socks` | SOCKS proxy |
+| `tor` | Tor exit node |
+| `cobaltstrike` | Cobalt Strike beacon |
+| `controller` | C2 controller |
+| `bot` | Bot/botnet |
+| `malware` | Known malware |
+| `ost` | Offensive security tool |
+| `orb` | Operational relay box |
+| `open-dir` | Open directory |
+| `res-proxy` | Residential proxy |
 
-# Get detailed malware report by hash
-{:ok, report} = PureSignalRecon.Malware.get_details(client, 
-  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-)
-```
+### Dual-Use Infrastructure
 
-### Scheduled Jobs
-
-```elixir
-# Create a recurring job that runs daily
-{:ok, schedule} = PureSignalRecon.Schedules.create(client, %{
-  job_id: job["id"],
-  interval: "1day"
-})
-
-# List all scheduled jobs
-{:ok, schedules} = PureSignalRecon.Schedules.list(client)
-
-# Delete a schedule
-{:ok, _} = PureSignalRecon.Schedules.delete(client, schedule["id"])
-```
-
-### Geographic Queries
-
-```elixir
-# Find IPs within 50km of coordinates
-{:ok, geo_ips} = PureSignalRecon.Maps.get_geo_ips(client, %{
-  latitude: 37.7749,
-  longitude: -122.4194,
-  distance: 50,
-  unit: "km"
-})
-```
-
-### Tagged IPs
-
-```elixir
-# Upload tagged IPs from a CSV file
-{:ok, result} = PureSignalRecon.TaggedIPs.insert_from_file(client, 
-  "/path/to/tagged_ips.csv"
-)
-
-# Delete tagged IPs from a file
-{:ok, _} = PureSignalRecon.TaggedIPs.delete_from_file(client,
-  "/path/to/ips_to_remove.csv"
-)
-```
-
-### Statistics and Usage
-
-```elixir
-# Get account statistics and limits
-{:ok, stats} = PureSignalRecon.Stats.get(client)
-
-IO.inspect(stats)
-# %{
-#   "queries_used" => 150,
-#   "queries_remaining" => 850,
-#   "storage_used_gb" => 2.5,
-#   ...
-# }
-```
-
-### Flow Estimation
-
-```elixir
-# Estimate flow data size before running a query
-{:ok, estimate} = PureSignalRecon.Estimate.flows(client, %{
-  ips_or_cidrs: "8.8.8.8,1.1.1.1",
-  start_date: "2024-01-01T00:00:00Z",
-  end_date: "2024-01-02T00:00:00Z"
-})
-```
-
-### Results Management
-
-```elixir
-# Get specific query result from a job
-{:ok, result} = PureSignalRecon.Results.get(client, result_id, 
-  format: "json",
-  data_variant: "conversations"
-)
-
-# Download result to file
-{:ok, filepath} = PureSignalRecon.Results.download(client, result_id,
-  "/path/to/output.json"
-)
-```
+| Tag | Description |
+|-----|-------------|
+| `astrill-vpn` | Astrill VPN |
+| `anydesk` | AnyDesk remote access |
+| `warp-vpn` | Cloudflare WARP VPN |
+| `pia` | Private Internet Access VPN |
+| `1-vpn` | 1VPN service |
 
 ## API Modules
+
+### Scout
+
+- `PureSignalScout` - Main module and client creation
+- `PureSignalScout.Summary` - IP summary and bulk enrichment
+- `PureSignalScout.Comms` - Communication peers (netflow)
+- `PureSignalScout.Pdns` - Passive DNS queries
+- `PureSignalScout.Risk` - Risk scoring
+- `PureSignalScout.Tags` - Tag-based filtering and pivoting
+- `PureSignalScout.Hunt` - Banner and certificate hunting
+- `PureSignalScout.Advanced` - Fan-in analysis, IP searches, perimeter sweeps
+- `PureSignalScout.Client` - Low-level HTTP client (internal)
+
+### Recon
 
 - `PureSignalRecon` - Main module and client creation
 - `PureSignalRecon.Jobs` - Job management and execution
@@ -192,9 +187,9 @@ IO.inspect(stats)
 All API functions return either `{:ok, result}` or `{:error, reason}`:
 
 ```elixir
-case PureSignalRecon.Jobs.create(client, params) do
-  {:ok, job} ->
-    IO.puts("Job created with ID: #{job["id"]}")
+case PureSignalScout.Summary.get(scout, ip) do
+  {:ok, summary} ->
+    IO.puts("Risk score: #{summary["risk_score"]}")
     
   {:error, :authentication_error} ->
     IO.puts("Invalid API key")
@@ -212,11 +207,16 @@ end
 
 ## Rate Limits
 
-Be aware of API rate limits:
+### Scout
+- ~60 requests per window
+- Bulk operations automatically chunk at 20 IPs
+
+### Recon
 - Bulk delete operations: 1 request per minute
 - Flow estimation: 10 requests per day
+- Reads are FREE - only job creation incurs billing
 
-The client automatically retries transient errors up to 3 times.
+The clients automatically retry transient errors up to 3 times.
 
 ## Testing
 
@@ -244,5 +244,8 @@ This library is released under the BSD 3-Clause License.
 
 ## Links
 
-- [Team Cymru Pure Signal Recon](https://www.team-cymru.com/post/introducing-pure-signal-recon)
-- [API Documentation](https://recon.cymru.com/api/docs)
+- [Team Cymru Pure Signal](https://www.team-cymru.com/)
+- [Pure Signal Recon](https://www.team-cymru.com/post/introducing-pure-signal-recon)
+- [Pure Signal Scout](https://www.team-cymru.com/pure-signal-scout)
+- [Recon API Documentation](https://recon.cymru.com/api/docs)
+- [Scout API Documentation](https://scout.cymru.com/api/docs)

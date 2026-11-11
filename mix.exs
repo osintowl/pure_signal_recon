@@ -4,7 +4,7 @@ defmodule PureSignalRecon.MixProject do
   def project do
     [
       app: :pure_signal_recon,
-      version: "0.1.1",
+      version: "0.2.0",
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -13,8 +13,34 @@ defmodule PureSignalRecon.MixProject do
       source_url: "https://github.com/osintowl/pure_signal_recon",
       homepage_url: "https://github.com/osintowl/pure_signal_recon",
       docs: [
-        main: "PureSignalRecon",
-        extras: ["README.md", "LICENSE"]
+        main: "readme",
+        extras: ["README.md", "LICENSE"],
+        groups_for_modules: [
+          Recon: [
+            PureSignalRecon,
+            PureSignalRecon.Client,
+            PureSignalRecon.Jobs,
+            PureSignalRecon.Schedules,
+            PureSignalRecon.Results,
+            PureSignalRecon.Malware,
+            PureSignalRecon.Maps,
+            PureSignalRecon.TaggedIPs,
+            PureSignalRecon.Tags,
+            PureSignalRecon.Stats,
+            PureSignalRecon.Estimate
+          ],
+          Scout: [
+            PureSignalScout,
+            PureSignalScout.Client,
+            PureSignalScout.Summary,
+            PureSignalScout.Comms,
+            PureSignalScout.Pdns,
+            PureSignalScout.Risk,
+            PureSignalScout.Tags,
+            PureSignalScout.Hunt,
+            PureSignalScout.Advanced
+          ]
+        ]
       ]
     ]
   end
@@ -34,8 +60,8 @@ defmodule PureSignalRecon.MixProject do
 
   defp description do
     """
-    Elixir client for the Team Cymru Pure Signal Recon API. 
-    Query network flow data, malware intelligence, and threat data.
+    Elixir client for the Team Cymru Pure Signal platform (Recon + Scout).
+    Query network flows, malware intelligence, IP enrichment, threat tags, and more.
     """
   end
 
@@ -45,7 +71,8 @@ defmodule PureSignalRecon.MixProject do
       licenses: ["BSD-3-Clause"],
       links: %{
         "GitHub" => "https://github.com/osintowl/pure_signal_recon",
-        "Team Cymru" => "https://www.team-cymru.com/post/introducing-pure-signal-recon"
+        "Pure Signal Recon" => "https://www.team-cymru.com/post/introducing-pure-signal-recon",
+        "Pure Signal Scout" => "https://www.team-cymru.com/pure-signal-scout"
       },
       maintainers: ["Zac Hunsaker"]
     ]
